@@ -16,43 +16,50 @@ def criarBancoEIniciar():
     criarBanco()
 
 def realizarRequisicao(idMedicamento):
-    try:
-        bula = Bulario()
-        # Constroi a url
-        url = bula.pesquisaPorIdMedicamento(idMedicamento)
-        resposta = requests.get(url, headers=bula.getHeader())
+    tentativas = 0
+    while tentativas < 3:
+        try:
+            bula = Bulario()
+            # Constroi a url
+            url = bula.pesquisaPorIdMedicamento(idMedicamento)
+            resposta = requests.get(url, headers=bula.getHeader())
 
-        # Retorna json
-        if resposta.status_code == 200:
-            jsonResponseProximo = json.loads(resposta.text)
-            jsonResponseProximo = jsonResponseProximo.get('content')[0]
-            return jsonResponseProximo
-        elif resposta.status_code == 429:
-            time.sleep(10)
-            return None
-        else:
-            print(f"Requisição do registro medicamento: {idMedicamento} falhou. Code:{resposta.status_code} Tentando novamente...")
-            return None
-    except Exception as e:
-        logging.error(f"Erro ao processar a requisição do registro medicamento {idMedicamento}: {str(e)}")
+            # Retorna json
+            if resposta.status_code == 200:
+                jsonResponseProximo = json.loads(resposta.text)
+                jsonResponseProximo = jsonResponseProximo.get('content')[0]
+                return jsonResponseProximo
+            elif resposta.status_code == 429:
+                time.sleep(10)
+                return None
+            else:
+                print(f"Requisição do registro medicamento: {idMedicamento} falhou. Code:{resposta.status_code} Tentando novamente...")
+                return None
+        except Exception as e:
+            logging.error(f"Erro ao processar a requisição do registro medicamento {idMedicamento}: {str(e)}")
         return None
+    logging.error(f"Requisição id {idMedicamento} falhou após {tentativas} tentativas.")
 
 def realizarRequisicaoDownload(idBulaPacienteProtegido):
-    try:
-        bula = Bulario()
-        urlProximo = bula.criaUrlPdf(idBulaPacienteProtegido)
-        resposta = requests.get(urlProximo, headers=bula.getHeader())
-        if resposta.status_code == 200:
-            return resposta
-        elif resposta.status_code == 429:
-            time.sleep(10)
+    tentativas = 0
+    while tentativas < 3:
+        try:
+            bula = Bulario()
+            # Gera url
+            urlProximo = bula.criaUrlPdf(idBulaPacienteProtegido)
+            resposta = requests.get(urlProximo, headers=bula.getHeader())
+            if resposta.status_code == 200:
+                return resposta
+            elif resposta.status_code == 429:
+                time.sleep(10) # sleep para "aliviar" para o servidor
+                return None
+            else:
+                print(f"Requisição do registro medicamento: {idBulaPacienteProtegido} falhou. Tentando novamente...")
+                return None
+        except Exception as e:
+            print(f"Erro ao processar a requisição do registro medicamento {idBulaPacienteProtegido}: {str(e)}")
             return None
-        else:
-            print(f"Requisição do registro medicamento: {idBulaPacienteProtegido} falhou. Tentando novamente...")
-            return None
-    except Exception as e:
-        print(f"Erro ao processar a requisição do registro medicamento {idBulaPacienteProtegido}: {str(e)}")
-        return None
+    logging.error(f"Requisição id da bula do paciente {idBulaPacienteProtegido} falhou após {tentativas} tentativas.")
 
 def processarMedicamento(idMedicamento):
     try:
@@ -62,7 +69,7 @@ def processarMedicamento(idMedicamento):
         if registroMedicamento is not None:
             pdf = realizarRequisicaoDownload(registroMedicamento.get('idBulaPacienteProtegido'))
             if isinstance(pdf, requests.Response):
-                #
+                # resgata da requisição o nome e o tipo do documento
                 contentDispositionHeader = pdf.headers['Content-Disposition']
                 filename = re.findall("filename=(.+)", contentDispositionHeader)
                 nomeArquivo = filename[0].strip('"')

@@ -16,6 +16,7 @@ def realizarRequisicao(nomeMedicamento, pagina, quantidade):
     while tentativas < 3:
         try:
             bula = Bulario()
+            # Gera url
             urlProximo = bula.pesquisar(nomeMedicamento=nomeMedicamento, quantidade=quantidade, pagina=pagina)
             response = requests.get(urlProximo, headers=bula.getHeader())
             if response.status_code == 200:
@@ -33,6 +34,7 @@ def realizarRequisicao(nomeMedicamento, pagina, quantidade):
 def insereRemedioBanco(nomeMedicamento, pagina, quantidade):
     resultado = realizarRequisicao(nomeMedicamento, pagina, quantidade)
     count = 0
+    # percorre todo os medicamentos da requisição
     for medicamento in resultado.get('content'):
         inserirMedicamento(medicamento['nomeProduto'], medicamento['numeroRegistro'], 'N')
         # faz uma pausa para evitar problemas no sqlite por quantidade de registro por transação.
@@ -43,7 +45,7 @@ def insereRemedioBanco(nomeMedicamento, pagina, quantidade):
 def main():
     # Verifica se existe o banco
     criarBanco()
-    #faz uma requisição para resgatar a quantidade de paginas e alguns medicamentos
+    # Faz uma requisição para resgatar a quantidade de paginas e alguns medicamentos
     jsonResponse = realizarRequisicao("", pagina=1, quantidade=1000)
     quantidadeTotalDePaginas = jsonResponse.get('totalPages')
     tamanhoGrupo = 4
