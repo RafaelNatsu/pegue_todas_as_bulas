@@ -14,8 +14,8 @@ def criarBanco():
         cursor.execute('''CREATE TABLE medicamentos
                           (id INTEGER PRIMARY KEY AUTOINCREMENT,
                            nome_medicamento TEXT,
-                           id_medicamento INTEGER,
-                           existe_pdf INTEGER)''')
+                           numero_registro INTEGER UNIQUE,
+                           existe_bula INTEGER)''')
         conn.commit()
 
     # Fechar conexão com o banco de dados

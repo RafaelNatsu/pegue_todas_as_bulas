@@ -43,9 +43,14 @@ class Bulario:
         url = f'https://consultas.anvisa.gov.br/api/consulta/medicamentos/arquivo/bula/parecer/{idBulaPaciente}/?Authorization='
         return url
     
-    # retorna url de um medicamento
+    # retorna url de um medicamento pelo nome
     def pesquisaMedicamento(self, nomeMedicamento):
         url = f"https://consultas.anvisa.gov.br/api/consulta/bulario?count=1&filter%5BnomeProduto%5D={nomeMedicamento}&page=1"
+        return url
+    
+    # retorna url de um medicamento pelo id
+    def pesquisaPorIdMedicamento(self, numeroRegistro):
+        url = f"https://consultas.anvisa.gov.br/api/consulta/bulario?count=1&filter%5BnumeroRegistro%5D={numeroRegistro}&page=1"
         return url
     
     def setParametros(self,totalDePaginas,totalDeElementos,numeroDeElementosPagina,quantidade,pagina):
